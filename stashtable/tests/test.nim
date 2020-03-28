@@ -12,23 +12,28 @@ from strutils import formatFloat, FloatFormatMode
 
 const
   threadcount = 16
-  runs = 10
+  runs = 4
+  valuesize = 10000
   testsize = 8192
   keyspace = testsize * 5
   extracapacityfactor = 2
   tablesize = testsize*2*extracapacityfactor
   simulateio = 1
 
+type Value = array[valuesize, int]
+
 let
-  stash = newStashTable[int, int, tablesize]()
+  stash = newStashTable[int, Value, tablesize]()
   #referencestash = initStashTable[int, int, tablesize]()
 
 var
   splits: array[threadcount, tuple[start: int, stop: int]]
   keys: array[testsize, int]
   morekeys: array[testsize, int]
-  sharedtable: SharedTable[int, int]
+  sharedtable: SharedTable[int, Value]
   sharedtablelock: Lock
+
+var newvalue {.threadvar.} : Value
 
 
 template takeBenchmark(code: untyped): float =
@@ -38,24 +43,25 @@ template takeBenchmark(code: untyped): float =
        
 proc insertToStashTable(split: int) =  
   for x in splits[split].start .. splits[split].stop:
-    discard stash.insert(keys[x], keys[x])
-    # discard referencestash.insert(keys[x], keys[x])
+    newvalue[0] = keys[x]
+    discard stash.insert(keys[x], newvalue)
+    # discard referencestash.insert(keys[x], newvalue)
     
 proc writeToStashTable(split: int) =
   for x in splits[split].start .. splits[split].stop:
     stash.withValue(keys[x]):
-      value[] -= 1
+      value[0] -= 1
     # referencestash.withValue(keys[x]):
-    # value[] -= 1
+    #   value[0] -= 1
 
 proc workwithStashTable(split: int) =
   for x in splits[split].start .. splits[split].stop:
     stash.withValue(keys[x]):
       sleep(simulateio)
-      value[] += 1000
+      value[0] += 1000
     #[referencestash.withValue(keys[x]):
        sleep(simulateio)
-       value[] *= 1000]#
+       value[0] *= 1000]#
          
 proc deleteFromStashTable(split: int) =
   for x in splits[split].start .. splits[split].stop:
@@ -70,18 +76,19 @@ proc insertToSharedtable(split: int) =
       try:
         discard sharedtable.mget(keys[x])
       except:
-        sharedtable[keys[x]] = keys[x]
+        newvalue[0] = keys[x]
+        sharedtable[keys[x]] = newvalue
     
 proc writeToSharedtable(split: int) =
   for x in splits[split].start .. splits[split].stop:
     sharedtable.withValue(keys[x], value):
-      value[] -= 1
+      value[0] -= 1
 
 proc workwithSharedtable(split: int) =
   for x in splits[split].start .. splits[split].stop:
     sharedtable.withValue(keys[x], value):
       sleep(simulateio)
-      value[] += 1000
+      value[0] += 1000
       
 proc deleteFromSharedtable(split: int) =
   for x in splits[split].start .. splits[split].stop:
@@ -133,20 +140,22 @@ proc doSomeRandomTestOperations(split: int) =
   for x in splits[split].start .. splits[split].stop:
     case x mod 5
     of 0:
-      discard stash.upsert(morekeys[x], x)
-      #discard referencestash.upsert(morekeys[x], x)
-      sharedtable.mgetOrPut(morekeys[x], x) = x
+      newvalue[0] = x
+      discard stash.upsert(morekeys[x], newvalue)
+      #discard referencestash.upsert(morekeys[x], newvalue)
+      sharedtable.mgetOrPut(morekeys[x], newvalue) = newvalue
     of 1:
-      discard stash.insert(morekeys[x], morekeys[x])
-      #discard referencestash.insert(morekeys[x], morekeys[x])
+      newvalue[0] = morekeys[x]
+      discard stash.insert(morekeys[x], newvalue)
+      #discard referencestash.insert(morekeys[x], newvalue)
       withlock(sharedtablelock):
         try:
           discard sharedtable.mget(morekeys[x])
         except:
-          sharedtable[morekeys[x]] = morekeys[x]
+          sharedtable[morekeys[x]] = newvalue
     of 2:
-      stash.withValue(keys[x]): value[] *= 2
-      sharedtable.withValue(keys[x], value): value[] *= 2
+      stash.withValue(keys[x]): value[0] *= 2
+      sharedtable.withValue(keys[x], value): value[0] *= 2
     of 3:
       sharedtable.del(keys[x])
       stash.del(keys[x])
@@ -154,8 +163,8 @@ proc doSomeRandomTestOperations(split: int) =
     of 4:      
       for (key , index) in stash.keys:
         stash.withFound(key, index):
-          if value[] > largestvalue:
-            largestvalue = value[]
+          if value[0] > largestvalue:
+            largestvalue = value[0]
     else: discard
   # echo "largest value seen at thread-local checkpoints: ", largestvalue
         
@@ -163,11 +172,11 @@ proc crossCheck() =
   var largestvalue = 0
   for (key , index) in stash.keys():
     stash.withFound(key, index):
-      if value[] > largestvalue: largestvalue = value[]
+      if value[0] > largestvalue: largestvalue = value[0]
       try:
         let svalue = sharedtable.mget(key)
-        if value[] != svalue:
-          echo "key ", key, " has value ", value[], " in stash, but ", svalue, " in SharedTable"
+        if value[0] != svalue[0]:
+          echo "key ", key, " has value ", value[0], " in stash, but ", svalue[0], " in SharedTable"
           if threadcount == 1: (echo "Fatal bug!"; doAssert false)
       except:
         echo "Key ", key, " in StashTable but not in SharedTable"
@@ -176,16 +185,16 @@ proc crossCheck() =
   for i in 0 .. keys.high:
     sharedtable.withValue(keys[i], svalue):
       stash.withValue(keys[i]):
-        if value[] != svalue[]: echo "key ", keys[i], " has value ", value[], " in stash, but ", svalue[], " in SharedTable"
+        if value[0] != svalue[0]: echo "key ", keys[i], " has value ", value[0], " in stash, but ", svalue[0], " in SharedTable"
       do:
-        echo "Key ", keys[i], " in SharedTable with value ", svalue[], " but missing from StashTable"
+        echo "Key ", keys[i], " in SharedTable with value ", svalue[0], " but missing from StashTable"
         if threadcount == 1: (echo "Fatal bug!"; doAssert false)
   for i in 0 .. morekeys.high:
     sharedtable.withValue(morekeys[i], svalue):
       stash.withValue(morekeys[i]):
-        if value[] != svalue[]: echo "key ", morekeys[i], " has value ", value[], " in stash, but ", svalue[], " in SharedTable"
+        if value[0] != svalue[0]: echo "key ", morekeys[i], " has value ", value[0], " in stash, but ", svalue[0], " in SharedTable"
       do:
-        echo "Key ", morekeys[i], " in SharedTable with value ", svalue[]," but missing from StashTable"
+        echo "Key ", morekeys[i], " in SharedTable with value ", svalue[0]," but missing from StashTable"
         if threadcount == 1: (echo "Fatal bug!"; doAssert false)
 
 #[proc refCrossCheck() =
