@@ -15,6 +15,8 @@ http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/
 
 Compares StashTable against SharedTable. You can benchmark different
 aspects by modifying the consts in test.nim file.
+Essentially, SharedTable will drastically slow down when reading or writing
+takes some time (simulateio parameter in test.nim), while StashTable just keeps going.
 
 ## Testing
 
