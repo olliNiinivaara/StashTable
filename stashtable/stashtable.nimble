@@ -2,7 +2,7 @@
 
 version       = "1.0.0"
 author        = "Olli"
-description   = "Concurrent hash table for Nim"
+description   = "Concurrent hash table"
 license       = "MIT"
 srcDir        = "src"
 

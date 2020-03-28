@@ -41,7 +41,41 @@
 ##
 ## Basic usage
 ## -----------
+##
+## .. code-block:: nim
+##  from sequtils import zip
+##
+##  type BeatleName = enum
+##    Nil = "", John = "John", Paul = "Paul", George = "George", Ringo = "Ringo"
+##    
+##  const BeatleMaximum = 4
+##
+##  let
+##    names = [John, Paul, George, Ringo]
+##    years = [1940, 1942, 1943, 1940]
+##    beatles = newStashTable[BeatleName, int, BeatleMaximum]()
+##  
+##  for (name , birthYear) in zip(names, years):
+##    beatles[name] = birthYear
+##  
+##  echo beatles
+##  doAssert $beatles == "{John: 1940, Paul: 1942, George: 1943, Ringo: 1940}"
+##  
+##  type Names = array[2, BeatleName]
+##  
+##  let beatlesByYear = newStashTable[int, Names, BeatleMaximum]()
+##  
+##  for (birthYear , name) in zip(years, names):
+##    beatlesByYear.withValue(birthYear):    
+##      value[1] = name
+##    do: 
+##      # key doesn't exist, we create one
+##      beatlesByYear[birthYear] = [name, Nil]
+##  
+##  echo beatlesByYear
+##  doAssert $beatlesByYear == "{1940: [John, Ringo], 1942: [Paul, ], 1943: [George, ]}"
 ##   
+#[ DocGen fails...
 runnableExamples:
     from sequtils import zip
 
@@ -67,13 +101,15 @@ runnableExamples:
     
     for (birthYear , name) in zip(years, names):
       beatlesByYear.withValue(birthYear):    
-        (value[1] = name)
+        value[1] = name
       do: 
         # key doesn't exist, we create one
         beatlesByYear[birthYear] = [name, Nil]
     
     echo beatlesByYear
-    doAssert $beatlesByYear == "{1940: [John, Ringo], 1942: [Paul, ], 1943: [George, ]}" 
+    doAssert $beatlesByYear == "{1940: [John, Ringo], 1942: [Paul, ], 1943: [George, ]}"
+]#
+
 ## See also
 ## --------
 ## `sharedtables<https://nim-lang.org/docs/sharedtables.html>`_
@@ -148,6 +184,18 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
   ## Iterates over all ``(key , index)`` pairs in the table ``stash``.
   ##
   ## feature: if there are no deletes, iteration order is insertion order.
+  ##
+  ## .. code-block:: nim  
+  ##  let a = newStashTable[char, array[4, int], 128]()
+  ##  a['o'] = [1, 5, 7, 9]
+  ##  a['e'] = [2, 4, 6, 8]  
+  ##  for (k , index) in a.keys:
+  ##    a.withFound(k, index):
+  ##      echo "key: ", k
+  ##      echo "value: ", value[]
+  ##      doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])  
+  #[
+  docgen fail
   runnableExamples:  
       let a = newStashTable[char, array[4, int], 128]()
       a['o'] = [1, 5, 7, 9]
@@ -159,6 +207,7 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
           doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])  
   for i in 0 .. stash.freeindex - 1:
     if(likely) stash.storage[i].hash != NotInStash.int: yield (stash.storage[i].key , i.Index)
+]#
 
 proc hashis*[K](t: StashTable, key: K): int {.inline.} =
   ## This should not need to be public...
@@ -390,6 +439,19 @@ proc del*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K) =
   ##
   ## Note that ``del`` must not be called from inside a ``withValue`` or ``withFound`` block.
   ## Instead, write down the ``key`` and call ``del`` afterwards.
+  ##
+  ## .. code-block:: nim
+  ##  let s = newStashTable[int, char, 4]()
+  ##  var deletables: seq[int]
+  ##  s[1] = 'a' ; s[2] = 'b' ; s[3] = 'a'
+  ##  doAssert s.len == 3
+  ##  for (key, index) in s.keys:
+  ##    s.withFound(key, index):
+  ##      if value[] != 'b': deletables.add(key)
+  ##  for key in deletables: s.del(key)
+  ##  doAssert s.len == 1
+  #[
+    renders incorrectly
   runnableExamples:
       let s = newStashTable[int, char, 4]()
       var deletables: seq[int]
@@ -400,6 +462,7 @@ proc del*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K) =
           if value[] != 'b': deletables.add(key)
       for key in deletables: s.del(key)
       doAssert s.len == 1
+  ]#
   withLock(stash.totallock):
     let index = stash.findIndex(key)
     if index == NotInStash: return
