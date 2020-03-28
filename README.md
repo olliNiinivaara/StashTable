@@ -7,9 +7,7 @@ Concurrent hash table for Nim
 
 ## Documentation
 
-`nim doc stashtable.nim`
-
-Generates stashtable.html document.
+http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/stashtable/src/stashtable.html
 
 ## Benchmarking
 
