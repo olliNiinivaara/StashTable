@@ -1,0 +1,244 @@
+when not compileOption("threads"):
+  {.fatal: "threads are not enabled".}
+
+import stashtable
+
+import unittest
+import locks, random, sharedtables
+from math import nextPowerOfTwo
+from os import sleep  
+from times import epochTime
+from strutils import formatFloat, FloatFormatMode
+
+const
+  threadcount = 16
+  runs = 10
+  testsize = 8192
+  keyspace = testsize * 5
+  extracapacityfactor = 2
+  tablesize = testsize*2*extracapacityfactor
+  simulateio = 1
+
+let
+  stash = newStashTable[int, int, tablesize]()
+  #referencestash = initStashTable[int, int, tablesize]()
+
+var
+  splits: array[threadcount, tuple[start: int, stop: int]]
+  keys: array[testsize, int]
+  morekeys: array[testsize, int]
+  sharedtable: SharedTable[int, int]
+  sharedtablelock: Lock
+
+
+template takeBenchmark(code: untyped): float =
+  let epochstart = epochTime()
+  code
+  (epochTime() - epochstart) * 1000
+       
+proc insertToStashTable(split: int) =  
+  for x in splits[split].start .. splits[split].stop:
+    discard stash.insert(keys[x], keys[x])
+    # discard referencestash.insert(keys[x], keys[x])
+    
+proc writeToStashTable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    stash.withValue(keys[x]):
+      value[] -= 1
+    # referencestash.withValue(keys[x]):
+    # value[] -= 1
+
+proc workwithStashTable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    stash.withValue(keys[x]):
+      sleep(simulateio)
+      value[] += 1000
+    #[referencestash.withValue(keys[x]):
+       sleep(simulateio)
+       value[] *= 1000]#
+         
+proc deleteFromStashTable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    stash.del(keys[x])
+    # referencestash.del(keys[x])
+
+#-----------------------
+
+proc insertToSharedtable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    withlock(sharedtablelock):
+      try:
+        discard sharedtable.mget(keys[x])
+      except:
+        sharedtable[keys[x]] = keys[x]
+    
+proc writeToSharedtable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    sharedtable.withValue(keys[x], value):
+      value[] -= 1
+
+proc workwithSharedtable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    sharedtable.withValue(keys[x], value):
+      sleep(simulateio)
+      value[] += 1000
+      
+proc deleteFromSharedtable(split: int) =
+  for x in splits[split].start .. splits[split].stop:
+    sharedtable.del(keys[x])
+   
+proc benchmark() =
+  var thr: array[threadcount, Thread[int]]
+  var insert = takeBenchmark:
+    for split in thr.low .. thr.high: createThread(thr[split], insertToStashTable, split)
+    joinThreads(thr)
+  var size = stash.len().float
+  echo "StashTable  ", formatFloat(insert/size, ffDecimal, 5), " ms / insert"
+  insert = takeBenchmark:
+    for split in thr.low .. thr.high: createThread(thr[split], insertToSharedtable, split)
+    joinThreads(thr)
+  echo "Sharedtable ", formatFloat(insert/size, ffDecimal, 5), " ms / insert"
+  echo ""
+  var delthr: array[1+(threadcount div 4), Thread[int]]
+  var del = takeBenchmark:
+    for split in 0 .. delthr.high: createThread(delthr[split], deleteFromStashTable, split)    
+    joinThreads(delthr)
+  echo "StashTable  ", formatFloat(del/size, ffDecimal, 5), " ms / delete"
+  del = takeBenchmark:
+    for split in 0 .. delthr.high: createThread(delthr[split], deleteFromSharedtable, split)    
+    joinThreads(delthr)
+  echo "Sharedtable ", formatFloat(del/size, ffDecimal, 5), " ms / delete"
+  echo ""
+  var write = takeBenchmark:
+    for split in thr.low .. thr.high: createThread(thr[split], writeToStashTable, split)
+    joinThreads(thr)
+  echo "StashTable  ", formatFloat(write/size, ffDecimal, 5), " ms / write"
+  write = takeBenchmark:
+    for split in thr.low .. thr.high: createThread(thr[split], writeToSharedtable, split)
+    joinThreads(thr)
+  echo "Sharedtable ", formatFloat(write/size, ffDecimal, 5), " ms / write"
+  echo ""
+  var work = takeBenchmark:
+    for split in thr.low .. thr.high: createThread(thr[split], workwithStashTable, split)
+    joinThreads(thr)
+  echo "StashTable  ", formatFloat(work/size, ffDecimal, 5), " ms / (", simulateio, " ms io / key)"
+  work = takeBenchmark:
+    for split in thr.low .. thr.high: createThread(thr[split], workwithSharedtable, split)
+    joinThreads(thr)
+  echo "Sharedtable ", formatFloat(work/size, ffDecimal, 5), " ms / (", simulateio, " ms io / key)"
+
+
+proc doSomeRandomTestOperations(split: int) =
+  var largestvalue = 0
+  for x in splits[split].start .. splits[split].stop:
+    case x mod 5
+    of 0:
+      discard stash.upsert(morekeys[x], x)
+      #discard referencestash.upsert(morekeys[x], x)
+      sharedtable.mgetOrPut(morekeys[x], x) = x
+    of 1:
+      discard stash.insert(morekeys[x], morekeys[x])
+      #discard referencestash.insert(morekeys[x], morekeys[x])
+      withlock(sharedtablelock):
+        try:
+          discard sharedtable.mget(morekeys[x])
+        except:
+          sharedtable[morekeys[x]] = morekeys[x]
+    of 2:
+      stash.withValue(keys[x]): value[] *= 2
+      sharedtable.withValue(keys[x], value): value[] *= 2
+    of 3:
+      sharedtable.del(keys[x])
+      stash.del(keys[x])
+      #referencestash.del(keys[x])
+    of 4:      
+      for (key , index) in stash.keys:
+        stash.withFound(key, index):
+          if value[] > largestvalue:
+            largestvalue = value[]
+    else: discard
+  # echo "largest value seen at thread-local checkpoints: ", largestvalue
+        
+proc crossCheck() =
+  var largestvalue = 0
+  for (key , index) in stash.keys():
+    stash.withFound(key, index):
+      if value[] > largestvalue: largestvalue = value[]
+      try:
+        let svalue = sharedtable.mget(key)
+        if value[] != svalue:
+          echo "key ", key, " has value ", value[], " in stash, but ", svalue, " in SharedTable"
+          if threadcount == 1: (echo "Fatal bug!"; doAssert false)
+      except:
+        echo "Key ", key, " in StashTable but not in SharedTable"
+        if threadcount == 1: (echo "Fatal bug!"; doAssert false)
+  # echo "largest value at the end: ", largestvalue  
+  for i in 0 .. keys.high:
+    sharedtable.withValue(keys[i], svalue):
+      stash.withValue(keys[i]):
+        if value[] != svalue[]: echo "key ", keys[i], " has value ", value[], " in stash, but ", svalue[], " in SharedTable"
+      do:
+        echo "Key ", keys[i], " in SharedTable with value ", svalue[], " but missing from StashTable"
+        if threadcount == 1: (echo "Fatal bug!"; doAssert false)
+  for i in 0 .. morekeys.high:
+    sharedtable.withValue(morekeys[i], svalue):
+      stash.withValue(morekeys[i]):
+        if value[] != svalue[]: echo "key ", morekeys[i], " has value ", value[], " in stash, but ", svalue[], " in SharedTable"
+      do:
+        echo "Key ", morekeys[i], " in SharedTable with value ", svalue[]," but missing from StashTable"
+        if threadcount == 1: (echo "Fatal bug!"; doAssert false)
+
+#[proc refCrossCheck() =
+  for (key, value) in stash.pairs():
+    referencestash.withValue(key):
+      discard
+    do:
+      echo "Key ", key, " in stash but missing from referencestash!"
+  for (key, value) in referencestash.pairs():
+    stash.withValue(key):
+      discard
+    do:
+      echo "Key ", key, " in referencestash but missing from stash!"]# 
+
+#[proc checkAddAll() =
+  referencestash.clear()
+  discard referencestash.insert(1, -1)
+  referencestash[2] = -2
+  discard referencestash.upsert(3, -3)  
+  discard referencestash.addAll(stash, false)
+  for (key , notused) in stash.keys():
+    if referencestash.findIndex(key) == NotInStash:
+      echo "fatal bug!"
+      quit()]#
+
+
+sharedtable.init(tablesize)
+sharedtablelock.initLock()
+assert(testsize > threadcount)
+randomize()
+let step = testsize div threadcount
+for i in 0 ..< threadcount:
+  splits[i].start = i * step
+  splits[i].stop = i * step + step - 1
+echo "threadcount: ", threadcount
+echo "testsize: ", testsize
+echo "tablesize: ", tablesize
+
+suite "StashTable":
+  test "test":
+    for run in 1 .. runs:
+      stash.clear()
+      #referencestash.clear()
+      sharedtable.deinitSharedTable()
+      sharedtable.init(nextPowerOfTwo(testsize))     
+      for i in 0 .. keys.high: keys[i] = rand(keyspace)    
+      echo "-------------"
+      echo "run ", run
+      benchmark()
+      for i in 0 .. morekeys.high: morekeys[i] = rand(keyspace)
+      var thr: array[threadcount, Thread[int]]
+      for split in thr.low .. thr.high: createThread(thr[split], doSomeRandomTestOperations, split)
+      joinThreads(thr)
+      crosscheck()
+      #refCrossCheck()
+      #checkAddAll()
