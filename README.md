@@ -22,7 +22,7 @@ takes some time (simulateio parameter in test.nim), while StashTable just keeps 
 
 `nimble test`
 
-Benchmarking and testing are integrated. Each benchmark run ends with a pseudorandom
+Benchmarking and testing are integrated. Each benchmark run ends with a random
 sequence of operations executed on both tables after which the table contents are compared.
 There will nondeterministically be notifications that the contents do not align.
 Explanation is that a context switch has happened when an operation was executed on

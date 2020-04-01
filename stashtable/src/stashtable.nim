@@ -204,10 +204,9 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
         a.withFound(k, index):
           echo "key: ", k
           echo "value: ", value[]
-          doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])  
+          doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])]#
   for i in 0 .. stash.freeindex - 1:
     if(likely) stash.storage[i].hash != NotInStash.int: yield (stash.storage[i].key , i.Index)
-]#
 
 proc hashis*[K](t: StashTable, key: K): int {.inline.} =
   ## This should not need to be public...
