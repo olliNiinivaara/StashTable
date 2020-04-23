@@ -3,7 +3,7 @@ Concurrent hash table for Nim
 
 ## Installation
 
-latest stable release (1.0.0):
+latest stable release (1.1.0):
 `nimble install https://github.com/olliNiinivaara/StashTable`
 
 latest development version:
