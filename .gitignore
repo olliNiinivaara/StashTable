@@ -1,4 +1,4 @@
-stashtable/test
+tests/test
 nimcache/
 nimblecache/
 htmldocs/
