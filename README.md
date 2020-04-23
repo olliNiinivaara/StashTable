@@ -3,11 +3,19 @@ Concurrent hash table for Nim
 
 ## Installation
 
-`nimble install https://github.com/olliNiinivaara/StashTable?subdir=stashtable`
+latest stable release:
+`nimble install https://github.com/olliNiinivaara/StashTable`
+
+latest development version:
+`nimble install https://github.com/olliNiinivaara/StashTable@#head`
+
+old releases (replace 1.0.0 with desirable release tag):
+`nimble install https://github.com/olliNiinivaara/StashTable@1.0.0`
+
 
 ## Documentation
 
-http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/stashtable/src/stashtable.html
+http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/src/stashtable.html
 
 ## Benchmarking
 
