@@ -3,35 +3,26 @@ Concurrent hash table for Nim
 
 ## Installation
 
-latest stable release:
+latest stable release (1.0.0):
 `nimble install https://github.com/olliNiinivaara/StashTable`
 
 latest development version:
 `nimble install https://github.com/olliNiinivaara/StashTable@#head`
 
-old releases (replace 1.0.0 with desirable release tag):
-`nimble install https://github.com/olliNiinivaara/StashTable@1.0.0`
-
-
 ## Documentation
 
 http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/src/stashtable.html
 
-## Benchmarking
+## testshared
 
-`nimble test`
+testshared.nim compares StashTable against SharedTable. You can benchmark different
+aspects by modifying the consts in file.
 
-Compares StashTable against SharedTable. You can benchmark different
-aspects by modifying the consts in test.nim file.
 Essentially, SharedTable will drastically slow down when reading or writing
 takes some time (simulateio parameter in test.nim), while StashTable just keeps going.
 
-## Testing
-
-`nimble test`
-
-Benchmarking and testing are integrated. Each benchmark run ends with a random
-sequence of operations executed on both tables after which the table contents are compared.
+Each benchmark run ends with a random sequence of operations executed on both tables
+after which the table contents are compared.
 There will nondeterministically be notifications that the contents do not align.
 Explanation is that a context switch has happened when an operation was executed on
 the other table but not yet on the other, and the other thread operated on the same key.
@@ -47,3 +38,14 @@ Thread 1:
 Sharedtable: op1-1: insert X
 ...
 ```
+This nondeterminism is not an implication that either StashTable or SharedTable has incorrect implementation (see below).
+
+## testtable
+
+testshared.nim compares StashTable against Nim stdlib's single-threaded [TableRef](https://nim-lang.org/docs/tables.html).
+
+Essentially, SharedTable is bit slower than Table, but searching for a key and iterating over all keys
+are much faster with SharedTable (because those operations do not need locking).
+
+Unlike testshared, this test is totally deterministic and table contents always align.
+Therefore this test shows the correctness of SharedTable implementation.

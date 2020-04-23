@@ -35,7 +35,7 @@
 ## * Because iterating does not block, aggregate functions do not give consistent answers if other threads are modifying the table
 ## * ``withValue`` or ``withFound`` calls cannot be nested, unless always in same key order. Otherwise a deadlock is bound to occur
 ## * A blocking operation cannot be called from inside ``withValue`` or ``withFound``. Otherwise a deadlock is bound to occur
-## * Don't put strings or seqs in keys or values (this is an inherent limitation of Nim itself)
+## * Don't put strings, seqs or refs in keys or values (this is an inherent limitation of Nim itself until --gc:arc)
 ## 
 ## StashTable has `ref semantics<https://nim-lang.org/docs/manual.html#types-reference-and-pointer-types>`_.
 ##
@@ -118,7 +118,7 @@ runnableExamples:
 
 import locks, hashes
 export locks
-from math import isPowerOfTwo
+from math import nextPowerOfTwo
 
 type
   Item[K; V] = tuple[lock: Lock, hash: int, key: K, value: V]
@@ -133,7 +133,7 @@ type
     storage: array[Capacity, Item[K,V]]
     deletioncount: int
     deletionstack: array[Capacity, Index]
-    hashes: array[Capacity, tuple[count: int, first: Index, last: Index]]
+    hashes: array[nextPowerOfTwo(Capacity), tuple[count: int, first: Index, last: Index]]
 
   StashTable*[K; V; Capacity: static int] = ref StashTableObject[K, V, Capacity]
     ## Generic thread-safe hash table.
@@ -146,10 +146,6 @@ const NotInStash* = (low(int32) + 1).Index
 proc newStashTable*[K; V; Capacity: static int](): StashTable[K, V, Capacity] =
   ## Creates a new hash table that is empty.
   ##
-  ## ``Capacity`` must be a power of two.
-  ## If you need to accept runtime values for this you could use the
-  ## `nextPowerOfTwo<https://nim-lang.org/docs/math.html#nextPowerOfTwo,int>`_ proc
-  ##
   ## After maximum capacity is reached, inserts and upserts will start returning ``NotInStash``.
   ## If you need to grow the capacity, create a new larger table, copy items to it
   ## with ``addAll`` proc and switch reference(s). 
@@ -160,8 +156,6 @@ proc newStashTable*[K; V; Capacity: static int](): StashTable[K, V, Capacity] =
   ## * ``addAll`` will temporarily need enough memory to hold both old ***and*** new table
   ## * Last but not least: all extra capacity will speed up execution by lowering probability of hash collisions
   ##
- 
-  doAssert isPowerOfTwo(Capacity)
   result = StashTable[K, V, Capacity]()
   result.totallock.initLock()
   for i in 0 .. result.storage.high:
@@ -300,7 +294,9 @@ template withValue*[K, V, Capacity](stash: StashTable[K, V, Capacity], thekey: K
   else:
     acquire(stash[index].lock)
     if(likely) stash[index].hash != NotInStash.int and stash[index].key == thekey:
+      {.push used.}
       var value {.inject.} = addr stash[index].value
+      {.pop.}
       try:
         body1
       finally:
@@ -330,15 +326,15 @@ proc `$`*(stash: StashTable): string =
       result.addQuoted(value[])
   result.add("}")
 
-template reserveIndex[K, V, Capacity](thestash: StashTable[K, V, Capacity]) =
+proc reserveIndex[K, V, Capacity](thestash: StashTable[K, V, Capacity]): Index {.inline} =
   if thestash.deletioncount > 0:
-    index = thestash.deletionstack[thestash.deletioncount - 1]
+    result = thestash.deletionstack[thestash.deletioncount - 1]
     thestash.deletioncount.dec
   else:
-    if thestash.freeindex == Capacity: return (NotInStash , false)
-    index = thestash.freeindex.Index
+    if thestash.freeindex == Capacity: return NotInStash
+    result = thestash.freeindex.Index
     thestash.freeindex.inc
-  assert(thestash[index].hash == NotInStash.int)
+  assert(thestash[result].hash == NotInStash.int)
 
 template useIndex(thestash: StashTable) =
   let h = thestash.hashis(key)
@@ -356,7 +352,8 @@ proc put[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K, value: V, up
     var inserted = false
     var index = stash.findIndex(key)
     if index == NotInStash:
-      reserveIndex(stash)
+      index = reserveIndex(stash)
+      if index == NotInStash: return (NotInStash , false)
       inserted = true
     elif not upsert: return (index , false)
     stash[index].value = value
@@ -393,6 +390,7 @@ proc addAll*[K; V; Capacity1: static int, Capacity2: static int](
      toStashTable: StashTable[K, V, Capacity1], fromStashTable: StashTable[K, V, Capacity2], upsert: bool): bool =    
   ## Copies all items from ``fromStashTable`` to ``toStashTable``.
   ## ``upsert`` parameter tells whether existing keys will be updated or skipped.
+  ## Returns false if could not add all because capacity filled up.
   acquire(toStashTable.totallock)
   acquire(fromStashTable.totallock)
   defer:
@@ -400,7 +398,9 @@ proc addAll*[K; V; Capacity1: static int, Capacity2: static int](
     release(toStashTable.totallock)
   for (key , fromindex) in fromStashTable.keys:
     var index = toStashTable.findIndex(key)
-    if index == NotInStash: reserveIndex(toStashTable)
+    if index == NotInStash:
+      index = reserveIndex(toStashTable)
+      if index == NotInStash: return false
     elif not upsert: continue
     fromStashTable.withFound(key, fromindex):
       toStashTable[index].value = value[]
@@ -479,8 +479,7 @@ proc clear*[K, V, Capacity](stash: StashTable[K, V, Capacity]) =
   withLock(stash.totallock):
     stash.freeindex = 0
     stash.deletioncount = 0
-    for i in 0 .. stash.storage.high:
-      stash.storage[i].hash = NotInStash.int
-      stash.hashes[i] = (0, NotInStash , NotInStash)
+    for i in 0 .. stash.storage.high: stash.storage[i].hash = NotInStash.int
+    for i in 0 .. stash.hashes.high: stash.hashes[i] = (0, NotInStash , NotInStash)
 
 {.pop.}
