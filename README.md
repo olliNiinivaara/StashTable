@@ -6,9 +6,6 @@ Concurrent hash table for Nim
 latest stable release (1.1.0):
 `nimble install https://github.com/olliNiinivaara/StashTable`
 
-latest development version:
-`nimble install https://github.com/olliNiinivaara/StashTable@#head`
-
 ## Documentation
 
 http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/src/stashtable.html
