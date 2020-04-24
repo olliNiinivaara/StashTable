@@ -12,7 +12,7 @@ http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/
 
 ## testshared
 
-testshared.nim compares StashTable against SharedTable. You can benchmark different
+testshared.nim compares StashTable against [SharedTable](https://nim-lang.org/docs/sharedtables.html). You can benchmark different
 aspects by modifying the consts in file.
 
 Essentially, SharedTable will drastically slow down when reading or writing
