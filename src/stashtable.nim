@@ -43,6 +43,7 @@
 ## -----------
 ##
 ## .. code-block:: nim
+##  import stashtable
 ##  from sequtils import zip
 ##
 ##  type BeatleName = enum
@@ -77,7 +78,7 @@
 ##   
 #[ DocGen fails...
 runnableExamples:
-  
+
     import stashtable
     from sequtils import zip
 
