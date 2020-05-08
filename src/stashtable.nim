@@ -118,6 +118,7 @@ runnableExamples:
 ## `sharedtables<https://nim-lang.org/docs/sharedtables.html>`_
 ## `tables<https://nim-lang.org/docs/tables.html>`_
 ## `hashes<https://nim-lang.org/docs/hashes.html>`_
+## `nichecache<https://github.com/olliNiinivaara/Nichecache>`_
 
 import locks, hashes
 export locks

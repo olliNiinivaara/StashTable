@@ -8,7 +8,7 @@ latest stable release (1.1.0):
 
 ## Documentation
 
-http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/src/stashtable.html
+http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/doc/stashtable.html
 
 ## Tests and benchmarking
 
