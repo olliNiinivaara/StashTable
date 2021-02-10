@@ -20,8 +20,6 @@
 <title>stashtable</title>
 <link rel="stylesheet" type="text/css" href="nimdoc.out.css">
 
-<script type="text/javascript" src="dochack.js"></script>
-
 <script type="text/javascript">
 function main() {
   var pragmaDots = document.getElementsByClassName("pragmadots");
@@ -47,21 +45,12 @@ function main() {
 
   toggleSwitch.addEventListener('change', switchTheme, false);
 
+  const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+  if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
 
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.documentElement.setAttribute('data-theme', "dark");
-    toggleSwitch.checked = true;
-  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    document.documentElement.setAttribute('data-theme', "light");
-    toggleSwitch.checked = false;
-  } else {
-    const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
-    if (currentTheme) {
-      document.documentElement.setAttribute('data-theme', currentTheme);
-
-      if (currentTheme === 'dark') {
-        toggleSwitch.checked = true;
-      }
+    if (currentTheme === 'dark') {
+      toggleSwitch.checked = true;
     }
   }
 }
@@ -83,6 +72,9 @@ function main() {
   </div>
   <div id="global-links">
     <ul class="simple">
+    <li>
+      <a href="theindex.html">Index</a>
+    </li>
     </ul>
   </div>
   <div id="searchInputDiv">
@@ -103,9 +95,9 @@ function main() {
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#Index"
-    title="Index = distinct int"><wbr />Index<span class="attachedType"></span></a></li>
+    title="Index = distinct int">Index</a></li>
   <li><a class="reference" href="#StashTable"
-    title="StashTable[K; V; Capacity] = ref StashTableObject[K, V, Capacity]"><wbr />Stash<wbr />Table<span class="attachedType"></span></a></li>
+    title="StashTable[K; V; Capacity] = ref StashTableObject[K, V, Capacity]">StashTable</a></li>
 
   </ul>
 </li>
@@ -113,43 +105,79 @@ function main() {
   <a class="reference reference-toplevel" href="#10" id="60">Consts</a>
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#NotInStash"
-    title="NotInStash = -2147483647"><wbr />Not<wbr />In<wbr />Stash<span class="attachedType"></span></a></li>
+    title="NotInStash = -2147483647">NotInStash</a></li>
 
   </ul>
 </li>
 <li>
   <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#newStashTable"
-    title="newStashTable[K; V; Capacity: static int](): StashTable[K, V, Capacity]"><wbr />new<wbr />Stash<wbr />Table<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#%3Ddestroy%2CStashTableObject%5BK%2CV%2CCapacity%5D"
-    title="`=destroy`[K, V, Capacity](stash: var StashTableObject[K, V, Capacity])"><wbr />`=destroy`<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#%3D%3D%2CIndex%2CIndex"
-    title="`==`(x, y: Index): bool"><wbr />`==`<span class="attachedType">Index</span></a></li>
-  <li><a class="reference" href="#%24%2CIndex"
-    title="`$`(index: Index): string"><wbr />`$`<span class="attachedType">Index</span></a></li>
-  <li><a class="reference" href="#hashis%2CStashTable%2CK"
-    title="hashis[K](t: StashTable; key: K): int"><wbr />hashis<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#len%2CStashTable"
-    title="len(stash: StashTable): int"><wbr />len<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#findIndex%2CStashTable%5BK%2CV%2CCapacity%5D%2CK"
-    title="findIndex[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K): Index"><wbr />find<wbr />Index<span class="attachedType">StashTable</span></a></li>
+      <ul class="simple nested-toc-section">$
+      <li><a class="reference" href="#%24%2CIndex"
+    title="`$`(index: Index): string">$,<wbr>Index</a></li>
   <li><a class="reference" href="#%24%2CStashTable"
-    title="`$`(stash: StashTable): string"><wbr />`$`<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#insert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"
-    title="insert[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K; value: V): (Index, bool)"><wbr />insert<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#upsert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"
-    title="upsert[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K; value: V): (Index, bool)"><wbr />upsert<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#%5B%5D%3D%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"
-    title="`[]=`[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K; value: V)"><wbr />`[]=`<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#addAll%2CStashTable%5BK%2CV%2CCapacity1%5D%2CStashTable%5BK%2CV%2CCapacity2%5D%2Cbool"
+    title="`$`(stash: StashTable): string">$,<wbr>StashTable</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">findIndex
+      <li><a class="reference" href="#findIndex%2CStashTable%5BK%2CV%2CCapacity%5D%2CK"
+    title="findIndex[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K): Index">findIndex,<wbr>StashTable[K,<wbr>V,<wbr>Capacity],<wbr>K</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">del
+      <li><a class="reference" href="#del%2CStashTable%5BK%2CV%2CCapacity%5D%2CK"
+    title="del[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K)">del,<wbr>StashTable[K,<wbr>V,<wbr>Capacity],<wbr>K</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">[]=
+      <li><a class="reference" href="#%5B%5D%3D%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"
+    title="`[]=`[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K; value: V)">[]=,<wbr>StashTable[K,<wbr>V,<wbr>Capacity],<wbr>K,<wbr>V</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">upsert
+      <li><a class="reference" href="#upsert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"
+    title="upsert[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K; value: V): (
+    Index, bool)">upsert,<wbr>StashTable[K,<wbr>V,<wbr>Capacity],<wbr>K,<wbr>V</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">len
+      <li><a class="reference" href="#len%2CStashTable"
+    title="len(stash: StashTable): int">len,<wbr>StashTable</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">newStashTable
+      <li><a class="reference" href="#newStashTable"
+    title="newStashTable[K; V; Capacity: static int](): StashTable[K, V, Capacity]">newStashTable</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">insert
+      <li><a class="reference" href="#insert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"
+    title="insert[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K; value: V): (
+    Index, bool)">insert,<wbr>StashTable[K,<wbr>V,<wbr>Capacity],<wbr>K,<wbr>V</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">=destroy
+      <li><a class="reference" href="#%3Ddestroy%2CStashTableObject%5BK%2CV%2CCapacity%5D"
+    title="`=destroy`[K, V, Capacity](stash: var StashTableObject[K, V, Capacity])">=destroy,<wbr>StashTableObject[K,<wbr>V,<wbr>Capacity]</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">clear
+      <li><a class="reference" href="#clear%2CStashTable%5BK%2CV%2CCapacity%5D"
+    title="clear[K, V, Capacity](stash: StashTable[K, V, Capacity])">clear,<wbr>StashTable[K,<wbr>V,<wbr>Capacity]</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">addAll
+      <li><a class="reference" href="#addAll%2CStashTable%5BK%2CV%2CCapacity1%5D%2CStashTable%5BK%2CV%2CCapacity2%5D%2Cbool"
     title="addAll[K; V; Capacity1: static int; Capacity2: static int](
     toStashTable: StashTable[K, V, Capacity1];
-    fromStashTable: StashTable[K, V, Capacity2]; upsert: bool): bool"><wbr />add<wbr />All<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#del%2CStashTable%5BK%2CV%2CCapacity%5D%2CK"
-    title="del[K, V, Capacity](stash: StashTable[K, V, Capacity]; key: K)"><wbr />del<span class="attachedType">StashTable</span></a></li>
-  <li><a class="reference" href="#clear%2CStashTable%5BK%2CV%2CCapacity%5D"
-    title="clear[K, V, Capacity](stash: StashTable[K, V, Capacity])"><wbr />clear<span class="attachedType">StashTable</span></a></li>
+    fromStashTable: StashTable[K, V, Capacity2]; upsert: bool): bool">addAll,<wbr>StashTable[K,<wbr>V,<wbr>Capacity1],<wbr>StashTable[K,<wbr>V,<wbr>Capacity2],<wbr>bool</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">==
+      <li><a class="reference" href="#%3D%3D%2CIndex%2CIndex"
+    title="`==`(x, y: Index): bool">==,<wbr>Index,<wbr>Index</a></li>
+
+  </ul>
 
   </ul>
 </li>
@@ -157,7 +185,7 @@ function main() {
   <a class="reference reference-toplevel" href="#15" id="65">Iterators</a>
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#keys.i%2CStashTable%5BK%2CV%2CCapacity%5D"
-    title="keys[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K, Index)"><wbr />keys<span class="attachedType">StashTable</span></a></li>
+    title="keys[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K, Index)">keys</a></li>
 
   </ul>
 </li>
@@ -165,13 +193,14 @@ function main() {
   <a class="reference reference-toplevel" href="#18" id="68">Templates</a>
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#withFound.t%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CIndex%2Cuntyped"
-    title="withFound[K; V; Capacity](stash: StashTable[K, V, Capacity]; thekey: K; theindex: Index;
-                        body: untyped)"><wbr />with<wbr />Found<span class="attachedType">StashTable</span></a></li>
+    title="withFound[K; V; Capacity](stash: StashTable[K, V, Capacity]; thekey: K;
+                          theindex: Index; body: untyped)">withFound</a></li>
   <li><a class="reference" href="#withValue.t%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2Cuntyped%2Cuntyped"
     title="withValue[K; V; Capacity](stash: StashTable[K, V, Capacity]; thekey: K;
-                        body1, body2: untyped)"><wbr />with<wbr />Value<span class="attachedType">StashTable</span></a></li>
+                          body1, body2: untyped)">withValue</a></li>
   <li><a class="reference" href="#withValue.t%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2Cuntyped"
-    title="withValue[K; V; Capacity](stash: StashTable[K, V, Capacity]; thekey: K; body: untyped)"><wbr />with<wbr />Value<span class="attachedType">StashTable</span></a></li>
+    title="withValue[K; V; Capacity](stash: StashTable[K, V, Capacity]; thekey: K;
+                          body: untyped)">withValue</a></li>
 
   </ul>
 </li>
@@ -198,42 +227,35 @@ function main() {
 <ul class="simple"><li>Because iterating does not block, aggregate functions do not give consistent answers if other threads are modifying the table</li>
 <li><tt class="docutils literal"><span class="pre">withValue</span></tt> or <tt class="docutils literal"><span class="pre">withFound</span></tt> calls cannot be nested, unless always in same key order. Otherwise a deadlock is bound to occur</li>
 <li>A blocking operation cannot be called from inside <tt class="docutils literal"><span class="pre">withValue</span></tt> or <tt class="docutils literal"><span class="pre">withFound</span></tt>. Otherwise a deadlock is bound to occur</li>
-<li>Don't put strings, seqs or refs in keys or values (this is an inherent limitation of Nim itself until --gc:arc)</li>
+<li>Strings, seqs or refs in keys or values requires --gc:arc or --gc:orc</li>
 </ul>
 <p>StashTable has <a class="reference external" href="https://nim-lang.org/docs/manual.html#types-reference-and-pointer-types">ref semantics</a>.</p>
 
 <h1><a class="toc-backref" id="basic-usage" href="#basic-usage">Basic usage</a></h1><pre class="listing"><span class="Keyword">import</span> <span class="Identifier">stashtable</span>
 <span class="Keyword">from</span> <span class="Identifier">sequtils</span> <span class="Keyword">import</span> <span class="Identifier">zip</span>
 
-<span class="Keyword">type</span> <span class="Identifier">BeatleName</span> <span class="Operator">=</span> <span class="Keyword">enum</span>
-  <span class="Keyword">Nil</span> <span class="Operator">=</span> <span class="StringLit">&quot;&quot;</span><span class="Punctuation">,</span> <span class="Identifier">John</span> <span class="Operator">=</span> <span class="StringLit">&quot;John&quot;</span><span class="Punctuation">,</span> <span class="Identifier">Paul</span> <span class="Operator">=</span> <span class="StringLit">&quot;Paul&quot;</span><span class="Punctuation">,</span> <span class="Identifier">George</span> <span class="Operator">=</span> <span class="StringLit">&quot;George&quot;</span><span class="Punctuation">,</span> <span class="Identifier">Ringo</span> <span class="Operator">=</span> <span class="StringLit">&quot;Ringo&quot;</span>
-
-<span class="Keyword">const</span> <span class="Identifier">BeatleMaximum</span> <span class="Operator">=</span> <span class="DecNumber">4</span>
-
 <span class="Keyword">let</span>
-  <span class="Identifier">names</span> <span class="Operator">=</span> <span class="Punctuation">[</span><span class="Identifier">John</span><span class="Punctuation">,</span> <span class="Identifier">Paul</span><span class="Punctuation">,</span> <span class="Identifier">George</span><span class="Punctuation">,</span> <span class="Identifier">Ringo</span><span class="Punctuation">]</span>
+  <span class="Identifier">names</span> <span class="Operator">=</span> <span class="Punctuation">[</span><span class="StringLit">&quot;John&quot;</span><span class="Punctuation">,</span> <span class="StringLit">&quot;Paul&quot;</span><span class="Punctuation">,</span> <span class="StringLit">&quot;George&quot;</span><span class="Punctuation">,</span> <span class="StringLit">&quot;Ringo&quot;</span><span class="Punctuation">]</span>
   <span class="Identifier">years</span> <span class="Operator">=</span> <span class="Punctuation">[</span><span class="DecNumber">1940</span><span class="Punctuation">,</span> <span class="DecNumber">1942</span><span class="Punctuation">,</span> <span class="DecNumber">1943</span><span class="Punctuation">,</span> <span class="DecNumber">1940</span><span class="Punctuation">]</span>
-  <span class="Identifier">beatles</span> <span class="Operator">=</span> <span class="Identifier">newStashTable</span><span class="Punctuation">[</span><span class="Identifier">BeatleName</span><span class="Punctuation">,</span> <span class="Identifier">int</span><span class="Punctuation">,</span> <span class="Identifier">BeatleMaximum</span><span class="Punctuation">]</span><span class="Punctuation">(</span><span class="Punctuation">)</span>
+  <span class="Identifier">beatles</span> <span class="Operator">=</span> <span class="Identifier">newStashTable</span><span class="Punctuation">[</span><span class="Identifier">string</span><span class="Punctuation">,</span> <span class="Identifier">int</span><span class="Punctuation">,</span> <span class="Identifier">names</span><span class="Operator">.</span><span class="Identifier">len</span><span class="Punctuation">]</span><span class="Punctuation">(</span><span class="Punctuation">)</span>
 
 <span class="Keyword">for</span> <span class="Punctuation">(</span><span class="Identifier">name</span> <span class="Punctuation">,</span> <span class="Identifier">birthYear</span><span class="Punctuation">)</span> <span class="Keyword">in</span> <span class="Identifier">zip</span><span class="Punctuation">(</span><span class="Identifier">names</span><span class="Punctuation">,</span> <span class="Identifier">years</span><span class="Punctuation">)</span><span class="Punctuation">:</span>
   <span class="Identifier">beatles</span><span class="Punctuation">[</span><span class="Identifier">name</span><span class="Punctuation">]</span> <span class="Operator">=</span> <span class="Identifier">birthYear</span>
 
 <span class="Identifier">echo</span> <span class="Identifier">beatles</span>
-<span class="Identifier">doAssert</span> <span class="Operator">$</span><span class="Identifier">beatles</span> <span class="Operator">==</span> <span class="StringLit">&quot;{John: 1940, Paul: 1942, George: 1943, Ringo: 1940}&quot;</span>
+<span class="Identifier">doAssert</span> <span class="Operator">$</span><span class="Identifier">beatles</span> <span class="Operator">==</span> <span class="LongStringLit">&quot;&quot;&quot;{&quot;John&quot;: 1940, &quot;Paul&quot;: 1942, &quot;George&quot;: 1943, &quot;Ringo&quot;: 1940}&quot;&quot;&quot;</span>
 
-<span class="Keyword">type</span> <span class="Identifier">Names</span> <span class="Operator">=</span> <span class="Identifier">array</span><span class="Punctuation">[</span><span class="DecNumber">2</span><span class="Punctuation">,</span> <span class="Identifier">BeatleName</span><span class="Punctuation">]</span>
-
-<span class="Keyword">let</span> <span class="Identifier">beatlesByYear</span> <span class="Operator">=</span> <span class="Identifier">newStashTable</span><span class="Punctuation">[</span><span class="Identifier">int</span><span class="Punctuation">,</span> <span class="Identifier">Names</span><span class="Punctuation">,</span> <span class="Identifier">BeatleMaximum</span><span class="Punctuation">]</span><span class="Punctuation">(</span><span class="Punctuation">)</span>
+<span class="Keyword">let</span> <span class="Identifier">beatlesByYear</span> <span class="Operator">=</span> <span class="Identifier">newStashTable</span><span class="Punctuation">[</span><span class="Identifier">int</span><span class="Punctuation">,</span> <span class="Identifier">seq</span><span class="Punctuation">[</span><span class="Identifier">string</span><span class="Punctuation">]</span><span class="Punctuation">,</span> <span class="Identifier">names</span><span class="Operator">.</span><span class="Identifier">len</span><span class="Punctuation">]</span><span class="Punctuation">(</span><span class="Punctuation">)</span>
 
 <span class="Keyword">for</span> <span class="Punctuation">(</span><span class="Identifier">birthYear</span> <span class="Punctuation">,</span> <span class="Identifier">name</span><span class="Punctuation">)</span> <span class="Keyword">in</span> <span class="Identifier">zip</span><span class="Punctuation">(</span><span class="Identifier">years</span><span class="Punctuation">,</span> <span class="Identifier">names</span><span class="Punctuation">)</span><span class="Punctuation">:</span>
   <span class="Identifier">beatlesByYear</span><span class="Operator">.</span><span class="Identifier">withValue</span><span class="Punctuation">(</span><span class="Identifier">birthYear</span><span class="Punctuation">)</span><span class="Punctuation">:</span>
-    <span class="Identifier">value</span><span class="Punctuation">[</span><span class="DecNumber">1</span><span class="Punctuation">]</span> <span class="Operator">=</span> <span class="Identifier">name</span>
+    <span class="Identifier">value</span><span class="Punctuation">[</span><span class="Punctuation">]</span><span class="Operator">.</span><span class="Identifier">add</span><span class="Punctuation">(</span><span class="Identifier">name</span><span class="Punctuation">)</span>
   <span class="Keyword">do</span><span class="Punctuation">:</span>
     <span class="Comment"># key doesn't exist, we create one</span>
-    <span class="Identifier">beatlesByYear</span><span class="Punctuation">[</span><span class="Identifier">birthYear</span><span class="Punctuation">]</span> <span class="Operator">=</span> <span class="Punctuation">[</span><span class="Identifier">name</span><span class="Punctuation">,</span> <span class="Keyword">Nil</span><span class="Punctuation">]</span>
+    <span class="Keyword">discard</span> <span class="Identifier">beatlesByYear</span><span class="Operator">.</span><span class="Identifier">insert</span><span class="Punctuation">(</span><span class="Identifier">birthYear</span><span class="Punctuation">,</span> <span class="Operator">@</span><span class="Punctuation">[</span><span class="Identifier">name</span><span class="Punctuation">]</span><span class="Punctuation">)</span>
 
 <span class="Identifier">echo</span> <span class="Identifier">beatlesByYear</span>
-<span class="Identifier">doAssert</span> <span class="Operator">$</span><span class="Identifier">beatlesByYear</span> <span class="Operator">==</span> <span class="StringLit">&quot;{1940: [John, Ringo], 1942: [Paul, ], 1943: [George, ]}&quot;</span></pre>
+<span class="Identifier">doAssert</span> <span class="Operator">$</span><span class="Identifier">beatlesByYear</span> <span class="Operator">==</span> <span class="LongStringLit">&quot;&quot;&quot;{1940: @[&quot;John&quot;, &quot;Ringo&quot;], 1942: @[&quot;Paul&quot;], 1943: @[&quot;George&quot;]}&quot;&quot;&quot;</span></pre>
 <h1><a class="toc-backref" id="see-also" href="#see-also">See also</a></h1><p><a class="reference external" href="https://nim-lang.org/docs/sharedtables.html">sharedtables</a> <a class="reference external" href="https://nim-lang.org/docs/tables.html">tables</a> <a class="reference external" href="https://nim-lang.org/docs/hashes.html">hashes</a> <a class="reference external" href="https://github.com/olliNiinivaara/Nichecache">nichecache</a></p>
 </p>
   <div class="section" id="7">
@@ -306,13 +328,6 @@ Releases OS resources reserved by locks.
 
 
 </dd>
-<a id="hashis,StashTable,K"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#hashis%2CStashTable%2CK"><span class="Identifier">hashis</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">t</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
-<dd>
-
-This should not need to be public...
-
-</dd>
 <a id="len,StashTable"></a>
 <dt><pre><span class="Keyword">proc</span> <a href="#len%2CStashTable"><span class="Identifier">len</span></a><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
@@ -335,8 +350,8 @@ Returns <tt class="docutils literal"><span class="pre">Index</span></tt> for giv
 
 </dd>
 <a id="insert,StashTable[K,V,Capacity],K,V"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#insert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"><span class="Identifier">insert</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">V</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><a href="stashtable.html#Index"><span class="Identifier">Index</span></a><span class="Other">,</span>
-    <span class="Identifier">bool</span><span class="Other">)</span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#insert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"><span class="Identifier">insert</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">V</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span>
+    <a href="stashtable.html#Index"><span class="Identifier">Index</span></a><span class="Other">,</span> <span class="Identifier">bool</span><span class="Other">)</span></pre></dt>
 <dd>
 
 Inserts a <tt class="docutils literal"><span class="pre">(key, value)</span></tt> pair into <tt class="docutils literal"><span class="pre">stash</span></tt>. Returns a tuple with following information:<ul class="simple"><li><tt class="docutils literal"><span class="pre">(i , true)</span></tt> : The item was succesfully inserted to Index i</li>
@@ -344,17 +359,17 @@ Inserts a <tt class="docutils literal"><span class="pre">(key, value)</span></tt
 <li><tt class="docutils literal"><span class="pre">(NotInStash , false)</span></tt> : The item was not inserted because <tt class="docutils literal"><span class="pre">stash</span></tt> was full, i.e. <tt class="docutils literal"><span class="pre">len</span></tt> == <tt class="docutils literal"><span class="pre">Capacity</span></tt></li>
 </ul>
 
-<p><strong class="examples_text">Examples:</strong></p>
-<pre class="listing"><span class="Keyword">let</span> <span class="Identifier">a</span> <span class="Other">=</span> <span class="Identifier">newStashTable</span><span class="Other">[</span><span class="Identifier">char</span><span class="Other">,</span> <span class="Identifier">int</span><span class="Other">,</span> <span class="DecNumber">1024</span><span class="Other">]</span><span class="Other">(</span><span class="Other">)</span>
-<span class="Keyword">let</span> <span class="Other">(</span><span class="Identifier">index1</span><span class="Other">,</span> <span class="Identifier">wasinserted1</span><span class="Other">)</span> <span class="Other">=</span> <span class="Identifier">a</span><span class="Other">.</span><span class="Identifier">insert</span><span class="Other">(</span><span class="CharLit">'x'</span><span class="Other">,</span> <span class="DecNumber">7</span><span class="Other">)</span>
-<span class="Identifier">doAssert</span> <span class="Identifier">wasinserted1</span>
-<span class="Keyword">let</span> <span class="Other">(</span><span class="Identifier">index2</span><span class="Other">,</span> <span class="Identifier">wasinserted2</span><span class="Other">)</span> <span class="Other">=</span> <span class="Identifier">a</span><span class="Other">.</span><span class="Identifier">insert</span><span class="Other">(</span><span class="CharLit">'x'</span><span class="Other">,</span> <span class="DecNumber">33</span><span class="Other">)</span>
-<span class="Identifier">doAssert</span> <span class="Identifier">index2</span> <span class="Operator">==</span> <span class="Identifier">index1</span> <span class="Keyword">and</span> <span class="Keyword">not</span> <span class="Identifier">wasinserted2</span></pre>
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">a</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newStashTable</span><span class="Punctuation">[</span><span class="Identifier">char</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">int</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="DecNumber">1024</span><span class="Punctuation">]</span><span class="Punctuation">(</span><span class="Punctuation">)</span><span class="Whitespace">  
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Punctuation">(</span><span class="Identifier">index1</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">wasinserted1</span><span class="Punctuation">)</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">a</span><span class="Operator">.</span><span class="Identifier">insert</span><span class="Punctuation">(</span><span class="CharLit">&apos;x&apos;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="DecNumber">7</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Identifier">doAssert</span><span class="Whitespace"> </span><span class="Identifier">wasinserted1</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Punctuation">(</span><span class="Identifier">index2</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">wasinserted2</span><span class="Punctuation">)</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">a</span><span class="Operator">.</span><span class="Identifier">insert</span><span class="Punctuation">(</span><span class="CharLit">&apos;x&apos;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="DecNumber">33</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Identifier">doAssert</span><span class="Whitespace"> </span><span class="Identifier">index2</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="Identifier">index1</span><span class="Whitespace"> </span><span class="Keyword">and</span><span class="Whitespace"> </span><span class="Keyword">not</span><span class="Whitespace"> </span><span class="Identifier">wasinserted2</span></pre>
 
 </dd>
 <a id="upsert,StashTable[K,V,Capacity],K,V"></a>
-<dt><pre><span class="Keyword">proc</span> <a href="#upsert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"><span class="Identifier">upsert</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">V</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><a href="stashtable.html#Index"><span class="Identifier">Index</span></a><span class="Other">,</span>
-    <span class="Identifier">bool</span><span class="Other">)</span></pre></dt>
+<dt><pre><span class="Keyword">proc</span> <a href="#upsert%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CV"><span class="Identifier">upsert</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">key</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">value</span><span class="Other">:</span> <span class="Identifier">V</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span>
+    <a href="stashtable.html#Index"><span class="Identifier">Index</span></a><span class="Other">,</span> <span class="Identifier">bool</span><span class="Other">)</span></pre></dt>
 <dd>
 
 Updates value at <tt class="docutils literal"><span class="pre">stash[key]</span></tt> or inserts item if <tt class="docutils literal"><span class="pre">key</span></tt> not present. Returns a tuple with following information:<ul class="simple"><li><tt class="docutils literal"><span class="pre">(i , true)</span></tt> : The item was succesfully inserted to Index i</li>
@@ -432,30 +447,29 @@ Resets the stash so that it is empty.
 <dl class="item">
 <a id="withFound.t,StashTable[K,V,Capacity],K,Index,untyped"></a>
 <dt><pre><span class="Keyword">template</span> <a href="#withFound.t%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2CIndex%2Cuntyped"><span class="Identifier">withFound</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">V</span><span class="Other">;</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">thekey</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span>
-                                <span class="Identifier">theindex</span><span class="Other">:</span> <a href="stashtable.html#Index"><span class="Identifier">Index</span></a><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
+                                   <span class="Identifier">theindex</span><span class="Other">:</span> <a href="stashtable.html#Index"><span class="Identifier">Index</span></a><span class="Other">;</span> <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
 <dd>
 
 <p>Retrieves pointer to the value as variable <tt class="docutils literal"><span class="pre">value</span></tt> at <tt class="docutils literal"><span class="pre">theindex</span></tt>. <tt class="docutils literal"><span class="pre">thekey</span></tt> must also be given to ensure that the given Index is still holding the putative item.</p>
 <p>Item is locked and value can be modified in the scope of <tt class="docutils literal"><span class="pre">withFound</span></tt> call.</p>
 <p>On one hand this is faster operation than <tt class="docutils literal"><span class="pre">withValue</span></tt> because there's no need to find the Index, but on other hand there's greater probability that the item was deleted and reinserted to other Index by other thread(s) since the Index was retrieved.</p>
 
-<p><strong class="examples_text">Examples:</strong></p>
-<pre class="listing"><span class="Keyword">type</span>
-  <span class="Identifier">Item</span> <span class="Other">=</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">name</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">,</span> <span class="Identifier">uid</span><span class="Other">:</span> <span class="Identifier">int</span><span class="Other">]</span>
-<span class="Keyword">let</span> <span class="Identifier">stash</span> <span class="Other">=</span> <span class="Identifier">newStashTable</span><span class="Other">[</span><span class="Identifier">int</span><span class="Other">,</span> <span class="Identifier">Item</span><span class="Other">,</span> <span class="DecNumber">8</span><span class="Other">]</span><span class="Other">(</span><span class="Other">)</span>
-<span class="Keyword">let</span> <span class="Identifier">key</span> <span class="Other">=</span> <span class="DecNumber">42</span>
-<span class="Identifier">stash</span><span class="Other">[</span><span class="Identifier">key</span><span class="Other">]</span> <span class="Other">=</span> <span class="Other">(</span><span class="CharLit">'a'</span><span class="Other">,</span> <span class="DecNumber">555</span><span class="Other">)</span>
-<span class="Keyword">let</span> <span class="Identifier">index</span> <span class="Other">=</span> <span class="Identifier">stash</span><span class="Other">.</span><span class="Identifier">findIndex</span><span class="Other">(</span><span class="Identifier">key</span><span class="Other">)</span>
-<span class="Identifier">stash</span><span class="Other">.</span><span class="Identifier">withFound</span><span class="Other">(</span><span class="Identifier">key</span><span class="Other">,</span> <span class="Identifier">index</span><span class="Other">)</span><span class="Other">:</span>
-  <span class="Identifier">value</span><span class="Other">.</span><span class="Identifier">name</span> <span class="Other">=</span> <span class="CharLit">'u'</span>
-  <span class="Identifier">value</span><span class="Other">.</span><span class="Identifier">uid</span> <span class="Other">=</span> <span class="DecNumber">1000</span>
-<span class="Identifier">stash</span><span class="Other">.</span><span class="Identifier">withFound</span><span class="Other">(</span><span class="DecNumber">42</span><span class="Other">,</span> <span class="DecNumber">0</span><span class="Other">.</span><span class="Identifier">Index</span><span class="Other">)</span><span class="Other">:</span>
-  <span class="Identifier">doAssert</span> <span class="Identifier">value</span><span class="Other">.</span><span class="Identifier">name</span> <span class="Operator">==</span> <span class="CharLit">'u'</span></pre>
+<p><strong class="examples_text">Example:</strong></p>
+<pre class="listing"><span class="Keyword">type</span><span class="Whitespace"> </span><span class="Identifier">Item</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Keyword">tuple</span><span class="Punctuation">[</span><span class="Identifier">name</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="Identifier">char</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">uid</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="Identifier">int</span><span class="Punctuation">]</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">stash</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">newStashTable</span><span class="Punctuation">[</span><span class="Identifier">int</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">Item</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="DecNumber">8</span><span class="Punctuation">]</span><span class="Punctuation">(</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">key</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="DecNumber">42</span><span class="Whitespace">
+</span><span class="Identifier">stash</span><span class="Punctuation">[</span><span class="Identifier">key</span><span class="Punctuation">]</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Punctuation">(</span><span class="CharLit">&apos;a&apos;</span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="DecNumber">555</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">index</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">stash</span><span class="Operator">.</span><span class="Identifier">findIndex</span><span class="Punctuation">(</span><span class="Identifier">key</span><span class="Punctuation">)</span><span class="Whitespace">
+</span><span class="Identifier">stash</span><span class="Operator">.</span><span class="Identifier">withFound</span><span class="Punctuation">(</span><span class="Identifier">key</span><span class="Whitespace"> </span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="Identifier">index</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace">
+  </span><span class="Comment"># block is executed only if ``key`` in ``index``</span><span class="Whitespace">
+  </span><span class="Identifier">value</span><span class="Operator">.</span><span class="Identifier">name</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="CharLit">&apos;u&apos;</span><span class="Whitespace">
+  </span><span class="Identifier">value</span><span class="Operator">.</span><span class="Identifier">uid</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="DecNumber">1000</span><span class="Whitespace">
+</span><span class="Identifier">stash</span><span class="Operator">.</span><span class="Identifier">withFound</span><span class="Punctuation">(</span><span class="DecNumber">42</span><span class="Whitespace"> </span><span class="Punctuation">,</span><span class="Whitespace"> </span><span class="FloatNumber">0.</span><span class="Identifier">Index</span><span class="Punctuation">)</span><span class="Punctuation">:</span><span class="Whitespace"> </span><span class="Identifier">doAssert</span><span class="Whitespace"> </span><span class="Identifier">value</span><span class="Operator">.</span><span class="Identifier">name</span><span class="Whitespace"> </span><span class="Operator">==</span><span class="Whitespace"> </span><span class="CharLit">&apos;u&apos;</span></pre>
 
 </dd>
 <a id="withValue.t,StashTable[K,V,Capacity],K,untyped,untyped"></a>
 <dt><pre><span class="Keyword">template</span> <a href="#withValue.t%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2Cuntyped%2Cuntyped"><span class="Identifier">withValue</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">V</span><span class="Other">;</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">thekey</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span>
-                                <span class="Identifier">body1</span><span class="Other">,</span> <span class="Identifier">body2</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
+                                   <span class="Identifier">body1</span><span class="Other">,</span> <span class="Identifier">body2</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
 <dd>
 
 <p>Retrieves pointer to the value as variable <tt class="docutils literal"><span class="pre">value</span></tt> for <tt class="docutils literal"><span class="pre">thekey</span></tt>. Item is locked and <tt class="docutils literal"><span class="pre">value</span></tt> can be modified in the scope of <tt class="docutils literal"><span class="pre">withValue</span></tt> call.</p>
@@ -471,7 +485,7 @@ Resets the stash so that it is empty.
 </dd>
 <a id="withValue.t,StashTable[K,V,Capacity],K,untyped"></a>
 <dt><pre><span class="Keyword">template</span> <a href="#withValue.t%2CStashTable%5BK%2CV%2CCapacity%5D%2CK%2Cuntyped"><span class="Identifier">withValue</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">;</span> <span class="Identifier">V</span><span class="Other">;</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">stash</span><span class="Other">:</span> <a href="stashtable.html#StashTable"><span class="Identifier">StashTable</span></a><span class="Other">[</span><span class="Identifier">K</span><span class="Other">,</span> <span class="Identifier">V</span><span class="Other">,</span> <span class="Identifier">Capacity</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">thekey</span><span class="Other">:</span> <span class="Identifier">K</span><span class="Other">;</span>
-                                <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
+                                   <span class="Identifier">body</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
 <dd>
 
 Retrieves pointer to the value as variable <tt class="docutils literal"><span class="pre">value</span></tt> for <tt class="docutils literal"><span class="pre">thekey</span></tt>. Item is locked and <tt class="docutils literal"><span class="pre">value</span></tt> can be modified in the scope of <tt class="docutils literal"><span class="pre">withValue</span></tt> call.
@@ -487,7 +501,7 @@ Retrieves pointer to the value as variable <tt class="docutils literal"><span cl
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-05-08 10:50:27 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-02-10 12:42:50 UTC</small>
       </div>
     </div>
   </div>

@@ -1,7 +1,7 @@
 #
 #
 #  StashTable, a contender for Nim stdlib's SharedTable
-#        (c) Copyright 2020 Olli Niinivaara
+#        (c) Copyright 2020-2021 Olli Niinivaara
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -35,84 +35,40 @@
 ## * Because iterating does not block, aggregate functions do not give consistent answers if other threads are modifying the table
 ## * ``withValue`` or ``withFound`` calls cannot be nested, unless always in same key order. Otherwise a deadlock is bound to occur
 ## * A blocking operation cannot be called from inside ``withValue`` or ``withFound``. Otherwise a deadlock is bound to occur
-## * Don't put strings, seqs or refs in keys or values (this is an inherent limitation of Nim itself until --gc:arc)
+## * Strings, seqs or refs in keys or values requires --gc:arc or --gc:orc
 ## 
 ## StashTable has `ref semantics<https://nim-lang.org/docs/manual.html#types-reference-and-pointer-types>`_.
 ##
 ## Basic usage
 ## -----------
-##
+##  
 ## .. code-block:: nim
 ##  import stashtable
 ##  from sequtils import zip
-##
-##  type BeatleName = enum
-##    Nil = "", John = "John", Paul = "Paul", George = "George", Ringo = "Ringo"
-##    
-##  const BeatleMaximum = 4
-##
+##  
 ##  let
-##    names = [John, Paul, George, Ringo]
+##    names = ["John", "Paul", "George", "Ringo"]
 ##    years = [1940, 1942, 1943, 1940]
-##    beatles = newStashTable[BeatleName, int, BeatleMaximum]()
+##    beatles = newStashTable[string, int, names.len]()
 ##  
 ##  for (name , birthYear) in zip(names, years):
 ##    beatles[name] = birthYear
 ##  
 ##  echo beatles
-##  doAssert $beatles == "{John: 1940, Paul: 1942, George: 1943, Ringo: 1940}"
+##  doAssert $beatles == """{"John": 1940, "Paul": 1942, "George": 1943, "Ringo": 1940}"""
 ##  
-##  type Names = array[2, BeatleName]
-##  
-##  let beatlesByYear = newStashTable[int, Names, BeatleMaximum]()
+##  let beatlesByYear = newStashTable[int, seq[string], names.len]()
 ##  
 ##  for (birthYear , name) in zip(years, names):
 ##    beatlesByYear.withValue(birthYear):    
-##      value[1] = name
+##      value[].add(name)
 ##    do: 
 ##      # key doesn't exist, we create one
-##      beatlesByYear[birthYear] = [name, Nil]
+##      discard beatlesByYear.insert(birthYear, @[name])
 ##  
 ##  echo beatlesByYear
-##  doAssert $beatlesByYear == "{1940: [John, Ringo], 1942: [Paul, ], 1943: [George, ]}"
+##  doAssert $beatlesByYear == """{1940: @["John", "Ringo"], 1942: @["Paul"], 1943: @["George"]}"""
 ##   
-#[ DocGen fails...
-runnableExamples:
-
-    import stashtable
-    from sequtils import zip
-
-    type BeatleName = enum
-      Nil = "", John = "John", Paul = "Paul", George = "George", Ringo = "Ringo"
-    
-    const BeatleMaximum = 4
-    
-    let
-      names = [John, Paul, George, Ringo]
-      years = [1940, 1942, 1943, 1940]
-      beatles = newStashTable[BeatleName, int, BeatleMaximum]()
-    
-    for (name , birthYear) in zip(names, years):
-      beatles[name] = birthYear
-    
-    echo beatles
-    doAssert $beatles == "{John: 1940, Paul: 1942, George: 1943, Ringo: 1940}"
-    
-    type Names = array[2, BeatleName]
-    
-    let beatlesByYear = newStashTable[int, Names, BeatleMaximum]()
-    
-    for (birthYear , name) in zip(years, names):
-      beatlesByYear.withValue(birthYear):    
-        value[1] = name
-      do: 
-        # key doesn't exist, we create one
-        beatlesByYear[birthYear] = [name, Nil]
-    
-    echo beatlesByYear
-    doAssert $beatlesByYear == "{1940: [John, Ringo], 1942: [Paul, ], 1943: [George, ]}"
-]#
-
 ## See also
 ## --------
 ## `sharedtables<https://nim-lang.org/docs/sharedtables.html>`_
@@ -165,7 +121,7 @@ proc newStashTable*[K; V; Capacity: static int](): StashTable[K, V, Capacity] =
   for i in 0 .. result.storage.high:
     result.storage[i].lock.initLock()
     result.storage[i].hash = NotInStash.int
-    result.hashes[i] = (0, NotInStash , NotInStash)
+  for i in 0 .. result.hashes.high:  result.hashes[i] = (0, NotInStash , NotInStash)
 
 proc `=destroy`*[K, V, Capacity](stash: var StashTableObject[K, V, Capacity]) =
   ## Releases OS resources reserved by locks.
@@ -192,23 +148,14 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
   ##      echo "key: ", k
   ##      echo "value: ", value[]
   ##      doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])  
-  #[
-  docgen fail
-  runnableExamples:  
-      let a = newStashTable[char, array[4, int], 128]()
-      a['o'] = [1, 5, 7, 9]
-      a['e'] = [2, 4, 6, 8]  
-      for (k , index) in a.keys:
-        a.withFound(k, index):
-          echo "key: ", k
-          echo "value: ", value[]
-          doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])]#
   for i in 0 .. stash.freeindex - 1:
-    if(likely) stash.storage[i].hash != NotInStash.int: yield (stash.storage[i].key , i.Index)
+    if likely(not(stash.storage[i].hash == int(NotInStash))): yield (stash.storage[i].key , Index(i))
 
-proc hashis*[K](t: StashTable, key: K): int {.inline.} =
-  ## This should not need to be public...
-  hash(key) and t.hashes.high
+template hashis(): int =
+  hash(key) and stash.hashes.high
+
+template hashis(key: untyped): int =
+  hash(key) and stash.hashes.high
 
 proc len*(stash: StashTable): int {.inline.} =
   ## Returns the number of keys in ``stash``.
@@ -217,21 +164,22 @@ proc len*(stash: StashTable): int {.inline.} =
 proc findIndex*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K): Index =
   ## Returns ``Index`` for given ``key``, or ``NotInStash`` if key was not in ``stash``.
   ## Note that the returned ``Index`` may be invalidated at any moment by other threads.
-  let h = stash.hashis(key)
+  let h = hashis()
+  #let h = stash.hashis(key)
   if stash.hashes[h].count == 0: return NotInStash
   var founds = 0
-  if stash.hashes[h].first != NotInStash:
+  if not(stash.hashes[h].first == NotInStash):
     founds.inc
     if stash.storage[stash.hashes[h].first.int].key == key: 
-      return if stash.storage[stash.hashes[h].first.int].hash != NotInStash.int: stash.hashes[h].first else: NotInStash
-  if stash.hashes[h].last != NotInStash:
+      return if not(stash.storage[stash.hashes[h].first.int].hash == int(NotInStash)): stash.hashes[h].first else: NotInStash
+  if not(stash.hashes[h].last == NotInStash):
      founds.inc 
      if stash.storage[stash.hashes[h].last.int].key == key:
-       return if stash.storage[stash.hashes[h].last.int].hash != NotInStash.int: stash.hashes[h].last else: NotInStash
+       return if not(stash.storage[stash.hashes[h].last.int].hash == int(NotInStash)): stash.hashes[h].last else: NotInStash
   if stash.hashes[h].count < 3: return NotInStash
   for i in stash.hashes[h].first.int + 1 .. stash.hashes[h].last.int - 1:
     if(unlikely) (stash.storage[i].hash == NotInStash.int): continue
-    if(unlikely) stash.storage[i].key == key: return i.Index
+    if(unlikely) stash.storage[i].key == key: return Index(i)
     if(unlikely) stash.storage[i].hash == h:
       founds.inc
       if(unlikely) founds >= stash.hashes[h].count: return NotInStash 
@@ -259,9 +207,9 @@ template withFound*[K, V, Capacity](stash: StashTable[K, V, Capacity],  thekey: 
         value.name = 'u'
         value.uid = 1000
       stash.withFound(42 , 0.Index): doAssert value.name == 'u'
-  if theindex != NotInStash:
+  if not(theindex == NotInStash):
     withLock(stash[theindex].lock):
-      if(likely) stash[theindex].hash != NotInStash.int and stash[theindex].key == thekey:
+      if likely(not(stash[theindex].hash == int(NotInStash)) and stash[theindex].key == thekey):
         var value {.inject.} = addr stash[theindex].value
         body
 
@@ -281,23 +229,11 @@ template withValue*[K, V, Capacity](stash: StashTable[K, V, Capacity], thekey: K
   ##    raise newException(KeyError, "Key not found")
   ##
 
-  #[ does not render correctly...
-  runnableExamples:
-      let s = newStashTable[int, char, 4]()
-      let key = 123
-      s[key] = 'x'
-      s.withValue(key):
-        # block is executed only if ``key`` in ``stashTable``
-        value[] = 'y'        
-      do:
-        # block is executed when ``key`` not in ``stashTable``
-        raise newException(KeyError, "Key not found") ]#
-
-  let index = stash.findIndex(thekey)
+  let index = findIndex(stash, thekey)
   if index == NotInStash: body2
   else:
     acquire(stash[index].lock)
-    if(likely) stash[index].hash != NotInStash.int and stash[index].key == thekey:
+    if likely(not(stash[index].hash == NotInStash.int) and stash[index].key == thekey):
       {.push used.}
       var value {.inject.} = addr stash[index].value
       {.pop.}
@@ -312,10 +248,10 @@ template withValue*[K, V, Capacity](stash: StashTable[K, V, Capacity], thekey: K
 template withValue*[K, V, Capacity](stash: StashTable[K, V, Capacity], thekey: K, body: untyped) =
   ## Retrieves pointer to the value as variable ``value`` for ``thekey``.
   ## Item is locked and ``value`` can be modified in the scope of ``withValue`` call.
-  let index = stash.findIndex(thekey)
-  if index != NotInStash:
+  let index = findIndex(stash, thekey)
+  if not (index == NotInStash):
     withLock(stash[index].lock):
-      if(likely) stash[index].hash != NotInStash.int and stash[index].key == thekey:
+      if likely(not(stash[index].hash == NotInStash.int) and stash[index].key == thekey):
         var value {.inject.} = addr stash[index].value
         body
 
@@ -336,20 +272,20 @@ proc reserveIndex[K, V, Capacity](thestash: StashTable[K, V, Capacity]): Index {
     thestash.deletioncount.dec
   else:
     if thestash.freeindex == Capacity: return NotInStash
-    result = thestash.freeindex.Index
+    result = Index(thestash.freeindex)
     thestash.freeindex.inc
-  assert(thestash[result].hash == NotInStash.int)
+  assert(thestash[result].hash == int(NotInStash))
 
-template useIndex(thestash: StashTable) =
-  let h = thestash.hashis(key)
-  withLock(thestash[index].lock):
-    if thestash.hashes[h].first == NotInStash or index.int < thestash.hashes[h].first.int:
-      if thestash.hashes[h].last == NotInStash: thestash.hashes[h].last = thestash.hashes[h].first
-      thestash.hashes[h].first = index
-    elif thestash.hashes[h].last == NotInStash or index.int > thestash.hashes[h].last.int: thestash.hashes[h].last = index
-    thestash[index].key = key
-    thestash[index].hash = h
-    thestash.hashes[h].count.inc
+template useIndex(stash: StashTable) =
+  let h = hashis()
+  withLock(stash[index].lock):
+    if stash.hashes[h].first == NotInStash or index.int < stash.hashes[h].first.int:
+      if stash.hashes[h].last == NotInStash: stash.hashes[h].last = stash.hashes[h].first
+      stash.hashes[h].first = index
+    elif stash.hashes[h].last == NotInStash or index.int > stash.hashes[h].last.int: stash.hashes[h].last = index
+    stash[index].key = key
+    stash[index].hash = h
+    stash.hashes[h].count.inc
 
 proc put[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K, value: V, upsert = false): (Index , bool) {.inline.} =
   withLock(stash.totallock):
@@ -412,7 +348,7 @@ proc addAll*[K; V; Capacity1: static int, Capacity2: static int](
   return true
 
 proc removeHash[K, V, Capacity](stash: StashTable[K, V, Capacity], index: Index, key: K) {.inline.} =
-  let h = stash.hashis(key)
+  let h = hashis()
   stash.hashes[h].count.dec
   if stash.hashes[h].count == 0:
     stash.hashes[h].first = NotInStash
@@ -423,18 +359,18 @@ proc removeHash[K, V, Capacity](stash: StashTable[K, V, Capacity], index: Index,
       stash.hashes[h].last = NotInStash
     else:
       for i in stash.hashes[h].first.int + 1 ..< stash.hashes[h].last.int:
-        if(unlikely) stash.hashis(stash.storage[i].key) == h:
-          if (likely) stash.storage[i].hash != NotInStash.int:
-            stash.hashes[h].first = i.Index
+        if(unlikely) hashis(stash.storage[i].key) == h:
+          if likely(not(stash.storage[i].hash == int(NotInStash))):
+            stash.hashes[h].first = Index(i)
             return   
   elif index == stash.hashes[h].last:
     if stash.hashes[h].count == 1:
       stash.hashes[h].last = NotInStash
     else:
       for i in countdown(stash.hashes[h].last.int - 1, stash.hashes[h].first.int + 1):
-        if(unlikely) stash.hashis(stash.storage[i].key) == h:
-          if(likely) stash.storage[i].hash != NotInStash.int:
-            stash.hashes[h].last = i.Index
+        if(unlikely) hashis(stash.storage[i].key) == h:
+          if likely(not(stash.storage[i].hash == int(NotInStash))):
+            stash.hashes[h].last = Index(i)
             return
           
 proc del*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K) =
@@ -453,19 +389,6 @@ proc del*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K) =
   ##      if value[] != 'b': deletables.add(key)
   ##  for key in deletables: s.del(key)
   ##  doAssert s.len == 1
-  #[
-    renders incorrectly
-  runnableExamples:
-      let s = newStashTable[int, char, 4]()
-      var deletables: seq[int]
-      s[1] = 'a' ; s[2] = 'b' ; s[3] = 'a'
-      doAssert s.len == 3
-      for (key, index) in s.keys:
-        s.withFound(key, index):
-          if value[] != 'b': deletables.add(key)
-      for key in deletables: s.del(key)
-      doAssert s.len == 1
-  ]#
   withLock(stash.totallock):
     let index = stash.findIndex(key)
     if index == NotInStash: return
