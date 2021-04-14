@@ -29,8 +29,8 @@ This nondeterminism is not an implication that either StashTable or SharedTable 
 
 testshared.nim compares StashTable against Nim stdlib's single-threaded [TableRef](https://nim-lang.org/docs/tables.html).
 
-Essentially, SharedTable is bit slower than Table, but searching for a key and iterating over all keys
-are much faster with SharedTable (because those operations do not need locking).
+Essentially, StashTable is bit slower than Table, but searching for a key and iterating over all keys
+are much faster with StashTable (because those operations do not need locking).
 
 Unlike testshared, this test is totally deterministic and table contents always align.
-Therefore this test shows the correctness of SharedTable implementation.
+Therefore this test shows the correctness of StashTable implementation.
