@@ -15,7 +15,7 @@ proc threading(d: tuple[t: int, shareddata: SharedData]) =
     d.shareddata.withValue("somekey"): value[].add($d.t & "->" & $i)
 
 let shareddata = newStashTable[string, seq[string], 100]()
-discard shareddata.insert("somekey", @[])
+shareddata.insert("somekey", @[])
 
 var threads: array[2, Thread[tuple[t: int, shareddata: SharedData]]]
 for i in 0 .. 1: createThread(threads[i], threading, (i, shareddata))
@@ -25,12 +25,11 @@ echo shareddata
 
 ## Installation
 
-latest stable release (1.2.0):
+latest stable release (1.2.1):
 `nimble install StashTable`
 
 ## Documentation
-
-http://htmlpreview.github.io/?https://github.com/olliNiinivaara/StashTable/blob/master/doc/stashtable.html
+https://olliNiinivaara.github.io/StashTable/
 
 ## Tests and benchmarking
 

@@ -301,7 +301,7 @@ proc put[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K, value: V, up
     if not upsert: return (index , true)
     else: return (index , inserted)
 
-proc insert*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K, value: V): (Index , bool) =
+proc insert*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K, value: V): (Index , bool) {.discardable.} =
   ## Inserts a ``(key, value)`` pair into ``stash``.
   ## Returns a tuple with following information:
   ## * ``(i , true)`` : The item was succesfully inserted to Index i

@@ -1,6 +1,6 @@
 # Package
 
-version       = "1.2.0"
+version       = "1.2.1"
 author        = "Olli Niinivaara"
 description   = "Concurrent hash table"
 license       = "MIT"
