@@ -4,7 +4,7 @@ Concurrent hash table for Nim. Excellent way to safely share arbitrary data betw
 ## Example
 
 ```nim
-# nim c -r --gc:orc --threads:on example.nim
+# nim r example.nim
 import os, random, stashtable
 
 type SharedData = StashTable[string, seq[string], 100]
@@ -25,8 +25,8 @@ echo shareddata
 
 ## Installation
 
-latest stable release (1.2.1):
-`nimble install StashTable`
+latest stable release (1.2.2):
+`atlas use StashTable`
 
 ## Documentation
 https://olliNiinivaara.github.io/StashTable/

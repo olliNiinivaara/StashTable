@@ -1,7 +1,7 @@
 when not compileOption("threads"):
   {.fatal: "threads are not enabled".}
 
-import ../src/stashtable, tables
+import stashtable, tables
 
 import unittest
 import random
