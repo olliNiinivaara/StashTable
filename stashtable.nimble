@@ -1,11 +1,7 @@
 # Package
 
-version       = "1.2.1"
+version       = "1.2.2"
 author        = "Olli Niinivaara"
 description   = "Concurrent hash table"
 license       = "MIT"
-srcDir        = "src"
-
-# Dependencies
-
-requires "nim >= 1.4.2"
+installFiles  = @["stashtable.nim"]

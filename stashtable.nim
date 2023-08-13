@@ -1,7 +1,7 @@
 #
 #
 #  StashTable, a contender for Nim stdlib's SharedTable
-#        (c) Copyright 2020-2021 Olli Niinivaara
+#        (c) Copyright 2020-2023 Olli Niinivaara
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -151,10 +151,10 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
   for i in 0 .. stash.freeindex - 1:
     if likely(not(stash.storage[i].hash == int(NotInStash))): yield (stash.storage[i].key , Index(i))
 
-template hashis(): int =
+template hashis[K, V, Capacity](stash: StashTable[K, V, Capacity]): int =
   hash(key) and stash.hashes.high
 
-template hashis(key: untyped): int =
+template hashis[K, V, Capacity](stash: StashTable[K, V, Capacity], key: untyped): int =
   hash(key) and stash.hashes.high
 
 proc len*(stash: StashTable): int {.inline.} =
@@ -164,7 +164,7 @@ proc len*(stash: StashTable): int {.inline.} =
 proc findIndex*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K): Index =
   ## Returns ``Index`` for given ``key``, or ``NotInStash`` if key was not in ``stash``.
   ## Note that the returned ``Index`` may be invalidated at any moment by other threads.
-  let h = hashis()
+  let h = hashis(stash)
   #let h = stash.hashis(key)
   if stash.hashes[h].count == 0: return NotInStash
   var founds = 0
@@ -277,7 +277,7 @@ proc reserveIndex[K, V, Capacity](thestash: StashTable[K, V, Capacity]): Index {
   assert(thestash[result].hash == int(NotInStash))
 
 template useIndex(stash: StashTable) =
-  let h = hashis()
+  let h = stash.hashis()
   withLock(stash[index].lock):
     if stash.hashes[h].first == NotInStash or index.int < stash.hashes[h].first.int:
       if stash.hashes[h].last == NotInStash: stash.hashes[h].last = stash.hashes[h].first
@@ -348,7 +348,7 @@ proc addAll*[K; V; Capacity1: static int, Capacity2: static int](
   return true
 
 proc removeHash[K, V, Capacity](stash: StashTable[K, V, Capacity], index: Index, key: K) {.inline.} =
-  let h = hashis()
+  let h = stash.hashis()
   stash.hashes[h].count.dec
   if stash.hashes[h].count == 0:
     stash.hashes[h].first = NotInStash
@@ -359,7 +359,7 @@ proc removeHash[K, V, Capacity](stash: StashTable[K, V, Capacity], index: Index,
       stash.hashes[h].last = NotInStash
     else:
       for i in stash.hashes[h].first.int + 1 ..< stash.hashes[h].last.int:
-        if(unlikely) hashis(stash.storage[i].key) == h:
+        if(unlikely) stash.hashis(stash.storage[i].key) == h:
           if likely(not(stash.storage[i].hash == int(NotInStash))):
             stash.hashes[h].first = Index(i)
             return   
@@ -368,7 +368,7 @@ proc removeHash[K, V, Capacity](stash: StashTable[K, V, Capacity], index: Index,
       stash.hashes[h].last = NotInStash
     else:
       for i in countdown(stash.hashes[h].last.int - 1, stash.hashes[h].first.int + 1):
-        if(unlikely) hashis(stash.storage[i].key) == h:
+        if(unlikely) stash.hashis(stash.storage[i].key) == h:
           if likely(not(stash.storage[i].hash == int(NotInStash))):
             stash.hashes[h].last = Index(i)
             return

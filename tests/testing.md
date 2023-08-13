@@ -1,7 +1,6 @@
 ## testshared
 
-testshared.nim compares StashTable against [SharedTable](https://nim-lang.org/docs/sharedtables.html). You can benchmark different
-aspects by modifying the consts in file.
+testshared.nim compares StashTable against [SharedTable](https://nim-lang.org/docs/sharedtables.html). You can benchmark different aspects by modifying the consts in file.
 
 Essentially, SharedTable will drastically slow down when reading or writing
 takes some time (simulateio parameter in test.nim), while StashTable just keeps going.
@@ -27,7 +26,7 @@ This nondeterminism is not an implication that either StashTable or SharedTable 
 
 ## testtable
 
-testshared.nim compares StashTable against Nim stdlib's single-threaded [TableRef](https://nim-lang.org/docs/tables.html).
+testtable.nim compares StashTable against Nim stdlib's single-threaded [TableRef](https://nim-lang.org/docs/tables.html).
 
 Essentially, StashTable is bit slower than Table, but searching for a key and iterating over all keys
 are much faster with StashTable (because those operations do not need locking).
