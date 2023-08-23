@@ -134,7 +134,7 @@ proc `$`*(index: Index): string =
   if index == NotInStash: "NotInStash"
   else: '@' & $index.int
 
-iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
+iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (lent K , Index) =
   ## Iterates over all ``(key , index)`` pairs in the table ``stash``.
   ##
   ## feature: if there are no deletes, iteration order is insertion order.
