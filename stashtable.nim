@@ -86,7 +86,7 @@ type
   Index* = distinct int
     ## Index to an item (item = key-value pair).
     ## Other threads may delete or move the item until it's locked with ``withFound`` template.
-    
+
   StashTableObject[K; V; Capacity: static int] = object
     totallock: Lock
     freeindex: int
@@ -139,7 +139,7 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
   ##
   ## feature: if there are no deletes, iteration order is insertion order.
   ##
-  ## .. code-block:: nim  
+  ## .. code-block:: nim
   ##  let a = newStashTable[char, array[4, int], 128]()
   ##  a['o'] = [1, 5, 7, 9]
   ##  a['e'] = [2, 4, 6, 8]  
@@ -149,7 +149,82 @@ iterator keys*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (K , Index) =
   ##      echo "value: ", value[]
   ##      doAssert (k == 'o' and value[] == [1, 5, 7, 9]) or (k == 'e' and value[] == [2, 4, 6, 8])  
   for i in 0 .. stash.freeindex - 1:
-    if likely(not(stash.storage[i].hash == int(NotInStash))): yield (stash.storage[i].key , Index(i))
+    if likely(not(stash.storage[i].hash == int(NotInStash))):
+      yield (stash.storage[i].key , Index(i))
+
+iterator values*[K, V, Capacity](stash: StashTable[K, V, Capacity]): lent V =
+  ## Iterates over all ``values`` in the table ``stash``.
+  ##
+  ## Each item is locked during its run of the iterator.
+  ##
+  ## .. code-block:: nim
+  ##  let a = newStashTable[char, array[4, int], 128]()
+  ##  a['o'] = [1, 5, 7, 9]
+  ##  a['e'] = [2, 4, 6, 8]
+  ##  for value in a.values:
+  ##    echo "value: ", value
+  ##    doAssert (value == [1, 5, 7, 9]) or (value == [2, 4, 6, 8])
+  for i in 0 .. stash.freeindex - 1:
+    if likely(not(stash.storage[i].hash == int(NotInStash))):
+      withLock(stash.storage[i].lock):
+        if likely(not(stash.storage[i].hash == int(NotInStash))):
+          yield stash.storage[i].value
+
+iterator mvalues*[K, V, Capacity](stash: StashTable[K, V, Capacity]): var V =
+  ## Iterates over all ``values`` in the table ``stash``. The values can be modified.
+  ##
+  ## Each item is locked during its run of the iterator.
+  ##
+  ## .. code-block:: nim
+  ##  let a = newStashTable[char, seq[int], 128]()
+  ##  a['o'] = @[1, 5, 7, 9]
+  ##  a['e'] = @[2, 4, 6, 8]
+  ##  for value in a.mvalues:
+  ##    echo "pop: ", value.pop
+  ##    doAssert (value == @[1, 5, 7]) or (value == @[2, 4, 6])
+  for i in 0 .. stash.freeindex - 1:
+    if likely(not(stash.storage[i].hash == int(NotInStash))):
+      withLock(stash.storage[i].lock):
+        if likely(not(stash.storage[i].hash == int(NotInStash))):
+          yield stash.storage[i].value
+
+iterator pairs*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (lent K, lent V) =
+  ## Iterates over all ``(key , value)`` pairs in the table ``stash``.
+  ##
+  ## Each item is locked during its run of the iterator.
+  ##
+  ## .. code-block:: nim
+  ##  let a = newStashTable[char, array[4, int], 128]()
+  ##  a['o'] = [1, 5, 7, 9]
+  ##  a['e'] = [2, 4, 6, 8]
+  ##  for (key , value) in a.pairs:
+  ##    echo "key: ", key
+  ##    echo "value: ", value
+  ##    doAssert (key == 'o' and value == [1, 5, 7, 9]) or (key == 'e' and value == [2, 4, 6, 8])
+  for i in 0 .. stash.freeindex - 1:
+    if likely(not(stash.storage[i].hash == int(NotInStash))):
+      withLock(stash.storage[i].lock):
+        if likely(not(stash.storage[i].hash == int(NotInStash))):
+          yield (stash.storage[i].key, stash.storage[i].value)
+
+iterator mpairs*[K, V, Capacity](stash: StashTable[K, V, Capacity]): (lent K, var V) =
+  ## Iterates over all ``(key , value)`` pairs in the table ``stash``. The values can be modified.
+  ##
+  ## Each item is locked during its run of the iterator.
+  ##
+  ## .. code-block:: nim
+  ##  let a = newStashTable[char, seq[int], 128]()
+  ##  a['o'] = @[1, 5, 7, 9]
+  ##  a['e'] = @[2, 4, 6, 8]
+  ##  for (key , value) in a.mpairs:
+  ##    echo "key: ", key
+  ##    echo "pop: ", value.pop
+  ##    doAssert (key == 'o' and value == @[1, 5, 7]) or (key == 'e' and value == @[2, 4, 6])
+  for i in 0 .. stash.freeindex - 1:
+    if likely(not(stash.storage[i].hash == int(NotInStash))):
+      withLock(stash.storage[i].lock):
+        if likely(not(stash.storage[i].hash == int(NotInStash))):
+          yield (stash.storage[i].key, stash.storage[i].value)
 
 template hashis[K, V, Capacity](stash: StashTable[K, V, Capacity]): int =
   hash(key) and stash.hashes.high
@@ -400,7 +475,7 @@ proc del*[K, V, Capacity](stash: StashTable[K, V, Capacity], key: K) =
         stash.deletionstack[stash.deletioncount] = index
         stash.deletioncount.inc    
       stash.removeHash(index, key)
-  
+
 proc clear*[K, V, Capacity](stash: StashTable[K, V, Capacity]) =
   ## Resets the stash so that it is empty.
   withLock(stash.totallock):
